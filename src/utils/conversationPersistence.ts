@@ -101,7 +101,7 @@ export function getConversationStoragePath(conversationId: string): string {
 }
 
 function applyTurnLimit(turns: ConversationTurn[], maxConversationTurns: number): ConversationTurn[] {
-  // zod schema enforces min(1) for tool inputs; <=0 is treated as "replay nothing" for safety.
+  // Defensive guard: <=0 means "replay nothing".
   if (maxConversationTurns <= 0) {
     return [];
   }
@@ -119,9 +119,13 @@ function applyCharLimit(turns: ConversationTurn[], maxConversationChars: number)
   for (let i = turns.length - 1; i >= 0; i--) {
     const turn = turns[i];
     const turnChars = turn.userPrompt.length + turn.geminiResponse.length;
-    // Keep at least the most recent turn so replay context never becomes empty when history exists,
-    // even if that single turn is larger than maxConversationChars.
-    if (kept.length > 0 && totalChars + turnChars > maxConversationChars) {
+    const exceedsLimit = totalChars + turnChars > maxConversationChars;
+    // Keep at least the most recent turn so replay context never becomes empty when history exists.
+    if (exceedsLimit && kept.length === 0) {
+      kept.unshift(turn);
+      break;
+    }
+    if (exceedsLimit) {
       break;
     }
     kept.unshift(turn);
