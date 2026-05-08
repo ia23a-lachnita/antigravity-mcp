@@ -158,6 +158,7 @@ This server can optionally replay prior context into later **one-shot** Gemini C
 - Optional replay bounds:
   - `maxConversationTurns`
   - `maxConversationChars`
+  - If the latest saved turn alone exceeds `maxConversationChars`, the latest turn is still included
 - Storage location:
   - Default: `~/.gemini-mcp-tool/conversations`
   - Override: `GEMINI_MCP_CONVERSATION_DIR`

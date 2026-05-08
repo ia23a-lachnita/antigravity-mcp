@@ -21,10 +21,10 @@ export interface GeminiExecutionOptions {
   onProgress?: (newOutput: string) => void;
 }
 
-const APPROVAL_MODES: ApprovalMode[] = ["default", "auto_edit", "plan", "yolo"];
+const VALID_APPROVAL_MODES: ApprovalMode[] = ["default", "auto_edit", "plan", "yolo"];
 
 function isApprovalMode(value: string): value is ApprovalMode {
-  return APPROVAL_MODES.includes(value as ApprovalMode);
+  return VALID_APPROVAL_MODES.includes(value as ApprovalMode);
 }
 
 export function resolveApprovalMode(approvalMode?: ApprovalMode): ApprovalMode {
@@ -58,11 +58,8 @@ export function buildGeminiArgs(
     args.push(`${CLI.FLAGS.APPROVAL_MODE}=${resolvedApprovalMode}`);
   }
 
-  // Ensure @ symbols work cross-platform by wrapping in quotes if needed
-  const finalPrompt = prompt.includes('@') && !prompt.startsWith('"')
-    ? `"${prompt}"`
-    : prompt;
-  args.push(CLI.FLAGS.PROMPT, finalPrompt);
+  // Pass prompt as a single argv element (no shell interpolation/wrapping).
+  args.push(CLI.FLAGS.PROMPT, prompt);
   return args;
 }
 

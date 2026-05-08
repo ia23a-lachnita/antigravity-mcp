@@ -112,10 +112,20 @@ test("unsafe conversation IDs cannot escape conversation directory", () => {
   const dir = createTempConversationDir();
   process.env.GEMINI_MCP_CONVERSATION_DIR = dir;
 
-  const filePath = getConversationStoragePath("../../etc/passwd");
   const resolvedDir = path.resolve(getConversationDirectory());
-  const resolvedFile = path.resolve(filePath);
+  const unsafeIds = [
+    "../../etc/passwd",
+    "/etc/passwd",
+    "..\\..\\windows\\system32",
+    "name\u0000withnull",
+    "name:with|special\"chars'",
+    "x".repeat(2048),
+  ];
 
-  assert.equal(resolvedFile.startsWith(`${resolvedDir}${path.sep}`), true);
-  assert.equal(path.relative(resolvedDir, resolvedFile).includes(".."), false);
+  for (const unsafeId of unsafeIds) {
+    const filePath = getConversationStoragePath(unsafeId);
+    const resolvedFile = path.resolve(filePath);
+    assert.equal(resolvedFile.startsWith(`${resolvedDir}${path.sep}`), true);
+    assert.equal(path.relative(resolvedDir, resolvedFile).includes(".."), false);
+  }
 });

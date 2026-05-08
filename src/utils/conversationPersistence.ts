@@ -18,6 +18,7 @@ interface ConversationFile {
 const DEFAULT_CONVERSATION_DIR = path.join(os.homedir(), ".gemini-mcp-tool", "conversations");
 const DEFAULT_MAX_CONVERSATION_TURNS = 10;
 const DEFAULT_MAX_CONVERSATION_CHARS = 12000;
+const MAX_CONVERSATION_PREFIX_LENGTH = 32;
 
 export interface ConversationPrepareOptions {
   conversationId?: string;
@@ -42,7 +43,9 @@ function ensureConversationDir(): string {
 function getConversationFilePath(conversationId: string): string {
   const dir = ensureConversationDir();
   const hash = createHash("sha256").update(conversationId).digest("hex");
-  const safePrefix = conversationId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 32) || "conversation";
+  // Keep prefix short for cross-platform filename compatibility.
+  const safePrefix = (conversationId.replace(/[^a-zA-Z0-9_-]/g, "_") || "conversation")
+    .slice(0, MAX_CONVERSATION_PREFIX_LENGTH);
   return path.join(dir, `${safePrefix}-${hash}.json`);
 }
 
@@ -98,6 +101,7 @@ export function getConversationStoragePath(conversationId: string): string {
 }
 
 function applyTurnLimit(turns: ConversationTurn[], maxConversationTurns: number): ConversationTurn[] {
+  // zod schema enforces min(1) for tool inputs; <=0 is treated as "replay nothing" for safety.
   if (maxConversationTurns <= 0) {
     return [];
   }
@@ -115,6 +119,8 @@ function applyCharLimit(turns: ConversationTurn[], maxConversationChars: number)
   for (let i = turns.length - 1; i >= 0; i--) {
     const turn = turns[i];
     const turnChars = turn.userPrompt.length + turn.geminiResponse.length;
+    // Keep at least the most recent turn so replay context never becomes empty when history exists,
+    // even if that single turn is larger than maxConversationChars.
     if (kept.length > 0 && totalChars + turnChars > maxConversationChars) {
       break;
     }
