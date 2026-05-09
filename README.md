@@ -43,6 +43,12 @@ If needed, you can force a specific Gemini executable path with `GEMINI_CLI_PATH
 claude mcp add gemini-cli -- npx -y gemini-mcp-tool
 ```
 
+### GitHub Fork Install (npx)
+
+```cmd
+claude mcp add gemini-cli -e GEMINI_CLI_PATH="C:\nvm4w\nodejs\gemini.cmd" -- npx -y github:ia23a-lachnita/gemini-mcp-tool-better
+```
+
 ### Verify Installation
 
 Type `/mcp` inside Claude Code to verify the gemini-cli MCP is active.

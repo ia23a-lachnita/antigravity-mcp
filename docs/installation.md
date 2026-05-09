@@ -23,6 +23,12 @@ No installation needed - runs directly:
 }
 ```
 
+### GitHub Fork via npx
+
+```cmd
+claude mcp add gemini-cli -e GEMINI_CLI_PATH="C:\nvm4w\nodejs\gemini.cmd" -- npx -y github:ia23a-lachnita/gemini-mcp-tool-better
+```
+
 ## Method 2: Global Installation
 
 ```bash
