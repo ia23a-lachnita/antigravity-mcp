@@ -106,6 +106,19 @@ export function buildCommandExecutionPlan(
   };
 }
 
+export function buildEnoentErrorMessage(command: string): string {
+  return (
+    `Gemini CLI not found: '${command}' could not be launched.\n` +
+    `The Gemini CLI may work in your terminal but not in the MCP server process PATH.\n` +
+    `To fix this:\n` +
+    `  1. On Windows, run 'where gemini' to find the full executable path.\n` +
+    `  2. Add the Gemini CLI directory to your system PATH.\n` +
+    `  3. Or set the GEMINI_CLI_PATH environment variable to the full path, for example:\n` +
+    `       GEMINI_CLI_PATH=C:\\nvm4w\\nodejs\\gemini.cmd\n` +
+    `       GEMINI_CLI_PATH=C:\\Users\\<user>\\AppData\\Local\\pnpm\\gemini.CMD`
+  );
+}
+
 export async function executeCommand(
   command: string,
   args: string[],
@@ -169,7 +182,11 @@ export async function executeCommand(
       if (!isResolved) {
         isResolved = true;
         Logger.error(`Process error:`, error);
-        reject(new Error(`Failed to spawn command: ${error.message}`));
+        if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+          reject(new Error(buildEnoentErrorMessage(executionPlan.command)));
+        } else {
+          reject(new Error(`Failed to spawn command: ${error.message}`));
+        }
       }
     });
     childProcess.on("close", (code) => {
