@@ -33,7 +33,8 @@ Before using this tool, ensure you have:
 1. **[Node.js](https://nodejs.org/)** (v16.0.0 or higher)
 2. **[Google Gemini CLI](https://github.com/google-gemini/gemini-cli)** installed and configured
 
-On Windows, the MCP now resolves `gemini` safely across common installs (`gemini`, `gemini.cmd`, `gemini.CMD`) such as nvm4w and pnpm shims.
+On Windows, the MCP resolves `gemini` across common installs (`gemini`, `gemini.cmd`, `gemini.CMD`) such as nvm4w and pnpm shims, and executes `.cmd`/`.bat` via `cmd.exe`.
+If needed, you can force a specific Gemini executable path with `GEMINI_CLI_PATH` (for example: `C:\nvm4w\nodejs\gemini.cmd`).
 
 
 ### One-Line Setup

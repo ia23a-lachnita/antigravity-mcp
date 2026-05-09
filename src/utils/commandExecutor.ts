@@ -1,6 +1,22 @@
 import { spawn, spawnSync } from "child_process";
 import { Logger } from "./logger.js";
 
+function normalizeExecutablePath(pathValue: string): string {
+  const trimmed = pathValue.trim();
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+function getGeminiCliPathOverride(command: string): string | undefined {
+  const override = process.env.GEMINI_CLI_PATH;
+  if (command !== "gemini" || !override?.trim()) {
+    return undefined;
+  }
+  return normalizeExecutablePath(override);
+}
+
 export function pickWindowsCommandCandidate(command: string, whereOutput: string): string {
   const lines = whereOutput
     .split(/\r?\n/)
@@ -39,6 +55,11 @@ function shouldSkipWindowsResolution(command: string): boolean {
 }
 
 export function resolveCommandForExecution(command: string): string {
+  const overridePath = getGeminiCliPathOverride(command);
+  if (overridePath) {
+    return overridePath;
+  }
+
   if (shouldSkipWindowsResolution(command)) {
     return command;
   }
@@ -60,6 +81,31 @@ export function resolveCommandForExecution(command: string): string {
   return `${command}.cmd`;
 }
 
+function quoteForWindowsCmd(value: string): string {
+  const escapedPercent = value.replace(/%/g, "%%");
+  const escaped = escapedPercent.replace(/(["^&|<>])/g, "^$1");
+  return `"${escaped}"`;
+}
+
+export function buildCommandExecutionPlan(
+  resolvedCommand: string,
+  args: string[],
+  platform: NodeJS.Platform = process.platform,
+): { command: string; args: string[] } {
+  if (platform === "win32" && /\.(cmd|bat)$/i.test(resolvedCommand)) {
+    const commandString = [resolvedCommand, ...args].map(quoteForWindowsCmd).join(" ");
+    return {
+      command: "cmd.exe",
+      args: ["/d", "/s", "/c", commandString],
+    };
+  }
+
+  return {
+    command: resolvedCommand,
+    args,
+  };
+}
+
 export async function executeCommand(
   command: string,
   args: string[],
@@ -68,9 +114,10 @@ export async function executeCommand(
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
     const resolvedCommand = resolveCommandForExecution(command);
-    Logger.commandExecution(resolvedCommand, args, startTime);
+    const executionPlan = buildCommandExecutionPlan(resolvedCommand, args);
+    Logger.commandExecution(executionPlan.command, executionPlan.args, startTime);
 
-    const childProcess = spawn(resolvedCommand, args, {
+    const childProcess = spawn(executionPlan.command, executionPlan.args, {
       env: process.env,
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
