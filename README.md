@@ -50,6 +50,7 @@ claude mcp add gemini-cli -e GEMINI_CLI_PATH="C:\nvm4w\nodejs\gemini.cmd" -- npx
 ```
 
 Replace `GEMINI_CLI_PATH` with the actual path to your local Gemini CLI executable.
+If you are installing from your own fork, replace `ia23a-lachnita/gemini-mcp-tool-better` with your repository path.
 
 ### Verify Installation
 
