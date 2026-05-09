@@ -111,7 +111,9 @@ export function buildEnoentErrorMessage(command: string): string {
     `Gemini CLI not found: '${command}' could not be launched.\n` +
     `The Gemini CLI may work in your terminal but not in the MCP server process PATH.\n` +
     `To fix this:\n` +
-    `  1. On Windows, run 'where gemini' to find the full executable path.\n` +
+    `  1. Find the full executable path:\n` +
+    `       Windows: where gemini\n` +
+    `       macOS/Linux: which gemini\n` +
     `  2. Add the Gemini CLI directory to your system PATH.\n` +
     `  3. Or set the GEMINI_CLI_PATH environment variable to the full path, for example:\n` +
     `       GEMINI_CLI_PATH=C:\\nvm4w\\nodejs\\gemini.cmd\n` +

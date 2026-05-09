@@ -64,6 +64,7 @@ test("ENOENT error message includes Gemini-specific guidance", () => {
   assert.equal(msg.includes("Gemini CLI not found"), true);
   assert.equal(msg.includes("gemini.cmd"), true);
   assert.equal(msg.includes("where gemini"), true);
+  assert.equal(msg.includes("which gemini"), true);
   assert.equal(msg.includes("GEMINI_CLI_PATH"), true);
   assert.equal(msg.includes("nvm4w"), true);
   assert.equal(msg.includes("pnpm"), true);
