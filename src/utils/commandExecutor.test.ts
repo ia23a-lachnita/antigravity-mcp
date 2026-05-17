@@ -121,6 +121,29 @@ test("GEMINI_CLI_PATH .ps1 builds powershell.exe -File", () => {
   delete process.env.GEMINI_CLI_PATH;
 });
 
+test("win32 .cmd plan sets windowsVerbatimArguments and outer-quotes the command", () => {
+  const plan = buildCommandExecutionPlan(
+    "C:\\nvm4w\\nodejs\\gemini.cmd",
+    ["-p", "hello"],
+    "win32",
+  );
+  assert.equal(plan.windowsVerbatimArguments, true);
+  // The /c argument must be wrapped in an extra pair of quotes so cmd.exe /s
+  // strips them and runs the inner command (with its quoted .cmd path) verbatim.
+  assert.equal(plan.args[3].startsWith('"'), true);
+  assert.equal(plan.args[3].endsWith('"'), true);
+  assert.equal(
+    plan.args[3],
+    '"call "C:\\nvm4w\\nodejs\\gemini.cmd" "-p" "hello""',
+  );
+});
+
+test("non-win32 plan does not set windowsVerbatimArguments", () => {
+  const plan = buildCommandExecutionPlan("/usr/bin/gemini", ["-p", "hi"], "linux");
+  assert.equal(plan.windowsVerbatimArguments, undefined);
+  assert.equal(plan.command, "/usr/bin/gemini");
+});
+
 test("cmd.exe command string preserves quotes and spaces", () => {
   const plan = buildCommandExecutionPlan(
     "C:\\nvm4w\\nodejs\\gemini.cmd",

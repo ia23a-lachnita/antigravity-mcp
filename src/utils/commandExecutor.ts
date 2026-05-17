@@ -109,18 +109,31 @@ function normalizeWindowsPath(value: string): string {
   return value.replace(/\//g, "\\");
 }
 
+export interface CommandExecutionPlan {
+  command: string;
+  args: string[];
+  windowsVerbatimArguments?: boolean;
+}
+
 export function buildCommandExecutionPlan(
   resolvedCommand: string,
   args: string[],
   platform: NodeJS.Platform = process.platform,
-): { command: string; args: string[] } {
+): CommandExecutionPlan {
   if (platform === "win32" && /\.(cmd|bat)$/i.test(resolvedCommand)) {
     const normalizedCommand = normalizeWindowsPath(resolvedCommand);
     const argString = args.map(quoteForWindowsCmd).join(" ");
     const commandString = `call ${quoteForWindowsCmd(normalizedCommand)}${argString ? ` ${argString}` : ""}`;
+    // Wrap the whole command in an extra pair of quotes and disable Node's
+    // argument re-escaping. With cmd.exe /s, the outer quotes are stripped and
+    // the inner command (including the quoted .cmd path) runs verbatim. Without
+    // this, Node re-quotes the command-string arg and cmd.exe fails with
+    // "'\"...\\gemini.cmd\"' is not recognized". This mirrors how Node.js
+    // itself invokes cmd.exe for shell:true.
     return {
       command: "cmd.exe",
-      args: ["/d", "/s", "/c", commandString],
+      args: ["/d", "/s", "/c", `"${commandString}"`],
+      windowsVerbatimArguments: true,
     };
   }
 
@@ -142,7 +155,7 @@ export function getSpawnCommandPlan(
   command: string,
   args: string[],
   platform: NodeJS.Platform = process.platform,
-): { resolvedCommand: string; command: string; args: string[] } {
+): { resolvedCommand: string } & CommandExecutionPlan {
   const resolvedCommand = resolveCommandForExecution(command);
   const executionPlan = buildCommandExecutionPlan(resolvedCommand, args, platform);
   return { resolvedCommand, ...executionPlan };
@@ -178,6 +191,7 @@ export async function executeCommand(
     const childProcess = spawn(executionPlan.command, executionPlan.args, {
       env: process.env,
       shell: false,
+      windowsVerbatimArguments: executionPlan.windowsVerbatimArguments,
       stdio: [stdinData !== undefined ? "pipe" : "ignore", "pipe", "pipe"],
     });
 

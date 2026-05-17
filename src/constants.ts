@@ -73,7 +73,7 @@ export const CLI = {
     SANDBOX: "-s",
     PROMPT: "-p",
     APPROVAL_MODE: "--approval-mode",
-    HELP: "-help",
+    HELP: "--help",
   },
   // Default values
   DEFAULTS: {
