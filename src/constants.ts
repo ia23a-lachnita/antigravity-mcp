@@ -40,18 +40,15 @@ export const STATUS_MESSAGES = {
   CLI_BACKEND: "🖥️  Using legacy Gemini CLI (cli backend)",
 } as const;
 
-// Models ordered strongest → fastest
+// Models ordered strongest → fastest (agy model IDs, thinking tiers set by agy UI)
 export const MODELS = {
-  DEFAULT: "gemini-3.5-flash",   // fast, highly capable — default for all calls
-  // Gemini 3.x family (current generation)
-  G3_PRO: "gemini-3.0-pro",     // most powerful
-  G3_FLASH: "gemini-3.5-flash",  // fast, very capable
-  G3_PRO_BASE: "gemini-3.0-pro",
-  G3_FLASH_BASE: "gemini-3.0-flash",
-  // Gemini 2.5 family (previous generation)
+  DEFAULT: "gemini-3.5-flash",  // fast, capable — default when no model specified
+  // Current generation
+  G31_PRO: "gemini-3.1-pro",   // most powerful
+  G35_FLASH: "gemini-3.5-flash", // fast, highly capable
+  // Previous generation (2.5 family — fallback / quota retry)
   PRO: "gemini-2.5-pro",
   FLASH: "gemini-2.5-flash",
-  FLASH_LITE: "gemini-2.5-flash-lite-preview-06-17",
 } as const;
 
 // MCP Protocol Constants
