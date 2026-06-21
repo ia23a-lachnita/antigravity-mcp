@@ -40,13 +40,17 @@ export const STATUS_MESSAGES = {
   CLI_BACKEND: "🖥️  Using legacy Gemini CLI (cli backend)",
 } as const;
 
-// Models — same model names work across both SDK and agy backends
+// Models ordered strongest → fastest
 export const MODELS = {
-  DEFAULT: "gemini-2.5-flash",
+  DEFAULT: "gemini-3.5-flash",   // fast, highly capable — default for all calls
+  // Gemini 3.x family (current generation)
+  G3_PRO: "gemini-3.0-pro",     // most powerful
+  G3_FLASH: "gemini-3.5-flash",  // fast, very capable
+  G3_PRO_BASE: "gemini-3.0-pro",
+  G3_FLASH_BASE: "gemini-3.0-flash",
+  // Gemini 2.5 family (previous generation)
   PRO: "gemini-2.5-pro",
   FLASH: "gemini-2.5-flash",
-  // Antigravity-specific model aliases (agy may present these in its UI)
-  PRO_PREVIEW: "gemini-2.5-pro-preview-06-05",
   FLASH_LITE: "gemini-2.5-flash-lite-preview-06-17",
 } as const;
 
