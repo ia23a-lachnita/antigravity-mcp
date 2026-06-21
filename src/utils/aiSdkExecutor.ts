@@ -56,7 +56,7 @@ export async function callGeminiSdk(
     throw new Error(ERROR_MESSAGES.NO_API_KEY);
   }
 
-  const modelId = options.model || MODELS.PRO;
+  const modelId = options.model || MODELS.DEFAULT;
   const resolvedPrompt = expandFileReferences(prompt);
 
   Logger.debug(`SDK backend: model=${modelId}, prompt length=${resolvedPrompt.length}`);
@@ -101,7 +101,7 @@ export async function callGeminiSdkWithFallback(
       msg.includes(ERROR_MESSAGES.QUOTA_EXCEEDED);
 
     if (isQuotaError && options.model !== MODELS.FLASH) {
-      Logger.warn(`SDK: quota exceeded on ${options.model ?? MODELS.PRO}, retrying with ${MODELS.FLASH}`);
+      Logger.warn(`SDK: quota exceeded on ${options.model ?? MODELS.DEFAULT}, retrying with ${MODELS.FLASH}`);
       return callGeminiSdk(prompt, { ...options, model: MODELS.FLASH });
     }
     throw err;

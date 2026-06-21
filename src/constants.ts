@@ -42,6 +42,7 @@ export const STATUS_MESSAGES = {
 
 // Models — same model names work across both SDK and agy backends
 export const MODELS = {
+  DEFAULT: "gemini-2.5-flash",
   PRO: "gemini-2.5-pro",
   FLASH: "gemini-2.5-flash",
   // Antigravity-specific model aliases (agy may present these in its UI)

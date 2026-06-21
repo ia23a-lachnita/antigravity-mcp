@@ -200,7 +200,7 @@ async function executeSdkBackend(
   prompt: string,
   options: { model?: string; onProgress?: (s: string) => void },
 ): Promise<string> {
-  Logger.debug(`SDK backend: model=${options.model ?? MODELS.PRO}`);
+  Logger.debug(`SDK backend: model=${options.model ?? MODELS.DEFAULT}`);
   return callGeminiSdkWithFallback(prompt, options);
 }
 
