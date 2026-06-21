@@ -161,12 +161,20 @@ test("ENOENT error message includes Gemini-specific guidance", () => {
   assert.equal(msg.includes("where gemini"), true);
   assert.equal(msg.includes("which gemini"), true);
   assert.equal(msg.includes("GEMINI_CLI_PATH"), true);
-  assert.equal(msg.includes("nvm4w"), true);
-  assert.equal(msg.includes("pnpm"), true);
+  // Updated message now references migration options instead of nvm4w/pnpm paths
+  assert.equal(msg.includes("GEMINI_BACKEND"), true);
+  assert.equal(msg.includes("GEMINI_API_KEY"), true);
 });
 
-test("ENOENT error message mentions PATH and terminal context", () => {
+test("ENOENT error message mentions migration path and discontinued status", () => {
   const msg = buildEnoentErrorMessage("cmd.exe");
-  assert.equal(msg.includes("terminal"), true);
-  assert.equal(msg.includes("PATH"), true);
+  assert.equal(msg.includes("discontinued"), true);
+  assert.equal(msg.includes("GEMINI_BACKEND"), true);
+});
+
+test("ENOENT error message for agy mentions agy-specific guidance", () => {
+  const msg = buildEnoentErrorMessage("agy.exe");
+  assert.equal(msg.includes("agy"), true);
+  assert.equal(msg.includes("AGY_CLI_PATH"), true);
+  assert.equal(msg.includes("where agy"), true);
 });

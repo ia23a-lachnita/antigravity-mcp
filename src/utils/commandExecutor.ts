@@ -162,17 +162,31 @@ export function getSpawnCommandPlan(
 }
 
 export function buildEnoentErrorMessage(command: string): string {
+  const isAgy = command.toLowerCase().includes('agy');
+  if (isAgy) {
+    return (
+      `agy (Antigravity CLI) not found: '${command}' could not be launched.\n` +
+      `The agy CLI may work in your terminal but not in the MCP server process PATH.\n` +
+      `To fix this:\n` +
+      `  1. Install agy from https://antigravity.google\n` +
+      `  2. Find the full executable path:\n` +
+      `       Windows: where agy\n` +
+      `       macOS/Linux: which agy\n` +
+      `  3. Set the AGY_CLI_PATH environment variable to the full path, for example:\n` +
+      `       AGY_CLI_PATH=C:\\Users\\<user>\\AppData\\Local\\agy\\bin\\agy.exe\n` +
+      `  4. Alternatively, use GEMINI_BACKEND=sdk with GEMINI_API_KEY for direct API access.`
+    );
+  }
   return (
     `Gemini CLI not found: '${command}' could not be launched.\n` +
-    `The Gemini CLI may work in your terminal but not in the MCP server process PATH.\n` +
-    `To fix this:\n` +
-    `  1. Find the full executable path:\n` +
-    `       Windows: where gemini\n` +
-    `       macOS/Linux: which gemini\n` +
-    `  2. Add the Gemini CLI directory to your system PATH.\n` +
-    `  3. Or set the GEMINI_CLI_PATH environment variable to the full path, for example:\n` +
-    `       GEMINI_CLI_PATH=C:\\nvm4w\\nodejs\\gemini.cmd\n` +
-    `       GEMINI_CLI_PATH=C:\\Users\\<user>\\AppData\\Local\\pnpm\\gemini.CMD`
+    `NOTE: The legacy gemini CLI (Google Gemini Code Assist) has been discontinued for free-tier users.\n` +
+    `Migration options:\n` +
+    `  1. Set GEMINI_BACKEND=sdk and GEMINI_API_KEY=<your-key> (get a free key at https://aistudio.google.com/apikey)\n` +
+    `  2. Set GEMINI_BACKEND=agy to use the agy Antigravity CLI (install from https://antigravity.google)\n` +
+    `If you still want to use the CLI, find its path:\n` +
+    `     Windows: where gemini\n` +
+    `     macOS/Linux: which gemini\n` +
+    `Then set: GEMINI_CLI_PATH=<full-path-to-gemini>`
   );
 }
 
