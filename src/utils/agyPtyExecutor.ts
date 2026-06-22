@@ -203,9 +203,13 @@ export async function executeAgyViaPty(
     ptyProc.onExit(({ exitCode }: { exitCode: number }) => {
       const clean = stripAgyNarration(stripAnsi(rawOutput).trim());
 
-      // Detect quota/usage-limit messages in output regardless of exit code
+      // Only scan the tail of the output for quota errors — agy's own error messages
+      // appear at the end. Scanning the full text causes false positives when the
+      // model's answer happens to mention "rate limits" or "quota" in its content.
+      const tailLines = clean.split('\n').slice(-30).join('\n');
       const isQuotaError =
-        /quota exceeded|rate limit|resource_exhausted|too many requests|usage limit|daily limit/i.test(clean);
+        /quota exceeded|rate limit|resource_exhausted|too many requests|usage limit|daily limit/i.test(tailLines) &&
+        exitCode !== 0;
       if (isQuotaError) {
         reject(
           new Error(
