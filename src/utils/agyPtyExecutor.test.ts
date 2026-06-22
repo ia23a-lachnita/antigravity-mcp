@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { stripAnsi, buildAgyArgs, resolveAgyPath, isPtyAvailable } from "./agyPtyExecutor.js";
+import { stripAnsi, buildAgyArgs, resolveAgyPath, isPtyAvailable, normalizeAgyModel } from "./agyPtyExecutor.js";
 
 // ── ANSI stripping ──────────────────────────────────────────────────────────
 
@@ -45,6 +45,29 @@ test("stripAnsi handles complex TUI output with mixed sequences", () => {
   assert.equal(clean.includes("\x1b"), false);
 });
 
+// ── normalizeAgyModel ───────────────────────────────────────────────────────
+
+test("normalizeAgyModel strips -preview suffix", () => {
+  assert.equal(normalizeAgyModel("gemini-3.1-pro-preview"), "gemini-3.1-pro");
+});
+
+test("normalizeAgyModel strips -exp suffix", () => {
+  assert.equal(normalizeAgyModel("gemini-2.5-flash-exp"), "gemini-2.5-flash");
+});
+
+test("normalizeAgyModel strips -latest suffix", () => {
+  assert.equal(normalizeAgyModel("gemini-3.5-flash-latest"), "gemini-3.5-flash");
+});
+
+test("normalizeAgyModel strips numeric variant suffixes", () => {
+  assert.equal(normalizeAgyModel("gemini-2.5-pro-001"), "gemini-2.5-pro");
+});
+
+test("normalizeAgyModel leaves valid model IDs unchanged", () => {
+  assert.equal(normalizeAgyModel("gemini-3.1-pro"), "gemini-3.1-pro");
+  assert.equal(normalizeAgyModel("gemini-3.5-flash"), "gemini-3.5-flash");
+});
+
 // ── buildAgyArgs ────────────────────────────────────────────────────────────
 
 test("buildAgyArgs includes prompt with -p flag", () => {
@@ -61,6 +84,13 @@ test("buildAgyArgs includes model with --model flag", () => {
   assert.equal(args[mIdx + 1], "gemini-2.5-flash");
 });
 
+test("buildAgyArgs normalizes model variants (e.g. -preview suffix)", () => {
+  const args = buildAgyArgs("hello", { model: "gemini-3.1-pro-preview" });
+  const mIdx = args.indexOf("--model");
+  assert.notEqual(mIdx, -1);
+  assert.equal(args[mIdx + 1], "gemini-3.1-pro");
+});
+
 test("buildAgyArgs includes --sandbox when sandbox=true", () => {
   const args = buildAgyArgs("hello", { sandbox: true });
   assert.equal(args.includes("--sandbox"), true);
@@ -71,19 +101,25 @@ test("buildAgyArgs omits --sandbox when sandbox=false", () => {
   assert.equal(args.includes("--sandbox"), false);
 });
 
-test("buildAgyArgs adds --dangerously-skip-permissions for yolo mode", () => {
+test("buildAgyArgs always includes --dangerously-skip-permissions (print mode is non-interactive)", () => {
+  // Print mode has no terminal for tool approval — always skip permissions
+  const noMode = buildAgyArgs("hello", {});
+  assert.equal(noMode.includes("--dangerously-skip-permissions"), true);
+});
+
+test("buildAgyArgs includes --dangerously-skip-permissions for yolo mode", () => {
   const args = buildAgyArgs("hello", { approvalMode: "yolo" });
   assert.equal(args.includes("--dangerously-skip-permissions"), true);
 });
 
-test("buildAgyArgs adds --dangerously-skip-permissions for auto_edit mode", () => {
+test("buildAgyArgs includes --dangerously-skip-permissions for auto_edit mode", () => {
   const args = buildAgyArgs("hello", { approvalMode: "auto_edit" });
   assert.equal(args.includes("--dangerously-skip-permissions"), true);
 });
 
-test("buildAgyArgs does not add skip-permissions for plan mode", () => {
+test("buildAgyArgs includes --dangerously-skip-permissions even for plan mode", () => {
   const args = buildAgyArgs("hello", { approvalMode: "plan" });
-  assert.equal(args.includes("--dangerously-skip-permissions"), false);
+  assert.equal(args.includes("--dangerously-skip-permissions"), true);
 });
 
 test("buildAgyArgs includes --print-timeout with default value", () => {

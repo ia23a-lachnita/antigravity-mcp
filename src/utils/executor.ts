@@ -9,7 +9,7 @@ import {
   CLI,
   ENV_VARS,
   type ApprovalMode,
-  type GeminiBackend,
+  type AiBackend,
 } from '../constants.js';
 
 import { parseChangeModeOutput, validateChangeModeEdits } from './changeModeParser.js';
@@ -17,7 +17,7 @@ import { formatChangeModeResponse, summarizeChangeModeEdits } from './changeMode
 import { chunkChangeModeEdits } from './changeModeChunker.js';
 import { cacheChunks, getChunks } from './chunkCache.js';
 
-export interface GeminiExecutionOptions {
+export interface AiExecutionOptions {
   model?: string;
   sandbox?: boolean;
   changeMode?: boolean;
@@ -38,23 +38,23 @@ function isApprovalMode(value: string): value is ApprovalMode {
 export function resolveApprovalMode(approvalMode?: ApprovalMode): ApprovalMode {
   if (approvalMode) return approvalMode;
 
-  const envMode = process.env[ENV_VARS.GEMINI_MCP_APPROVAL_MODE]?.trim();
+  const envMode = process.env[ENV_VARS.ANTIGRAVITY_MCP_APPROVAL_MODE]?.trim();
   if (!envMode) return 'plan';
 
   if (!isApprovalMode(envMode)) {
-    Logger.warn(`Ignoring invalid GEMINI_MCP_APPROVAL_MODE: ${envMode}`);
+    Logger.warn(`Ignoring invalid ANTIGRAVITY_MCP_APPROVAL_MODE: ${envMode}`);
     return 'default';
   }
   return envMode;
 }
 
 // ──────────────────────────────────────────────
-// Legacy CLI arg-builder (gemini CLI, kept for GEMINI_BACKEND=cli)
+// Legacy CLI arg-builder (gemini CLI, kept for ANTIGRAVITY_BACKEND=cli)
 // ──────────────────────────────────────────────
 
 export function buildGeminiArgs(
   prompt: string,
-  options: Pick<GeminiExecutionOptions, 'model' | 'sandbox' | 'approvalMode'>,
+  options: Pick<AiExecutionOptions, 'model' | 'sandbox' | 'approvalMode'>,
 ): string[] {
   const args: string[] = [];
   if (options.model) args.push(CLI.FLAGS.MODEL, options.model);
@@ -73,8 +73,8 @@ export function buildGeminiArgs(
 // Backend selection
 // ──────────────────────────────────────────────
 
-export function resolveBackend(): GeminiBackend {
-  const override = process.env[ENV_VARS.GEMINI_BACKEND]?.trim().toLowerCase() as GeminiBackend | undefined;
+export function resolveBackend(): AiBackend {
+  const override = process.env[ENV_VARS.ANTIGRAVITY_BACKEND]?.trim().toLowerCase() as AiBackend | undefined;
   if (override && ['sdk', 'agy', 'cli'].includes(override)) {
     return override;
   }
@@ -92,9 +92,9 @@ export function resolveBackend(): GeminiBackend {
 // Main entry point
 // ──────────────────────────────────────────────
 
-export async function executeGeminiCLI(
+export async function executeModel(
   prompt: string,
-  options: GeminiExecutionOptions = {},
+  options: AiExecutionOptions = {},
 ): Promise<string> {
   const { model, sandbox, changeMode, onProgress, approvalMode } = options;
   let processedPrompt = prompt;

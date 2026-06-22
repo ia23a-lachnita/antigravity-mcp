@@ -89,6 +89,11 @@ export function isPtyAvailable(): boolean {
   }
 }
 
+// Strip variant suffixes that agy doesn't recognize (e.g. -preview, -exp, -latest, -001).
+export function normalizeAgyModel(model: string): string {
+  return model.replace(/-(preview|exp|latest|\d{3,})$/i, '');
+}
+
 // Build the agy CLI argument list from execution options.
 export function buildAgyArgs(
   prompt: string,
@@ -102,18 +107,21 @@ export function buildAgyArgs(
   const args: string[] = [];
 
   if (options.model) {
-    args.push(CLI.AGY_FLAGS.MODEL, options.model);
+    const normalizedModel = normalizeAgyModel(options.model);
+    if (normalizedModel !== options.model) {
+      Logger.warn(`Model "${options.model}" normalized to "${normalizedModel}" for agy`);
+    }
+    args.push(CLI.AGY_FLAGS.MODEL, normalizedModel);
   }
   if (options.sandbox) {
     args.push(CLI.AGY_FLAGS.SANDBOX);
   }
 
-  // agy replaces --approval-mode=yolo with --dangerously-skip-permissions
-  const mode = options.approvalMode ?? 'plan';
-  if (mode === 'yolo' || mode === 'auto_edit') {
-    args.push(CLI.AGY_FLAGS.SKIP_PERMISSIONS);
-  }
-  // 'plan' and 'default' → no extra flag; agy's print-mode defaults are safe
+  // Print mode is non-interactive — there is no user to approve tool use.
+  // Always skip the permissions gate so tool-using responses don't stall and
+  // exit with code 2. User-visible "plan" vs "auto_edit" distinctions are
+  // meaningful only in interactive agy sessions, not in MCP print mode.
+  args.push(CLI.AGY_FLAGS.SKIP_PERMISSIONS);
 
   args.push(
     CLI.AGY_FLAGS.PRINT_TIMEOUT,
@@ -203,8 +211,12 @@ export async function executeAgyViaPty(
           resolve(clean);
         }
       } else {
+        const hint = exitCode === 2
+          ? '\nExit code 2 usually means invalid arguments — check the model name.\n' +
+            'Valid agy models: gemini-3.5-flash (default), gemini-3.1-pro, gemini-2.5-flash, gemini-2.5-pro'
+          : '';
         reject(
-          new Error(`agy exited with code ${exitCode}.\n${clean || '(no output)'}`),
+          new Error(`agy exited with code ${exitCode}.${hint}\n${clean || '(no output)'}`),
         );
       }
     });

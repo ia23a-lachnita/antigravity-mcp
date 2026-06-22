@@ -18,16 +18,16 @@ import {
 // ── registration ─────────────────────────────────────────────────────────────
 
 const EXPECTED_TOOLS = [
-  "ask-gemini",
+  "ask-ai",
   "ping",
   "Help",
   "brainstorm",
   "fetch-chunk",
   "timeout-test",
-  "list-gemini-conversations",
-  "read-gemini-conversation",
-  "clear-gemini-conversation",
-  "delete-gemini-conversation",
+  "list-conversations",
+  "read-conversation",
+  "clear-conversation",
+  "delete-conversation",
 ];
 
 test("all expected tools are registered", () => {
@@ -70,14 +70,14 @@ test("each prompt definition has name and description", () => {
 
 // ── getPromptMessage ─────────────────────────────────────────────────────────
 
-test("getPromptMessage builds message for ask-gemini", () => {
-  const msg = getPromptMessage("ask-gemini", { prompt: "explain recursion" });
-  assert.equal(msg.includes("ask-gemini"), true);
+test("getPromptMessage builds message for ask-ai", () => {
+  const msg = getPromptMessage("ask-ai", { prompt: "explain recursion" });
+  assert.equal(msg.includes("ask-ai"), true);
   assert.equal(msg.includes("explain recursion"), true);
 });
 
 test("getPromptMessage includes non-boolean args as (key: value)", () => {
-  const msg = getPromptMessage("ask-gemini", {
+  const msg = getPromptMessage("ask-ai", {
     prompt: "hello",
     model: "gemini-2.5-flash",
   });
@@ -85,7 +85,7 @@ test("getPromptMessage includes non-boolean args as (key: value)", () => {
 });
 
 test("getPromptMessage includes boolean true args as [key]", () => {
-  const msg = getPromptMessage("ask-gemini", {
+  const msg = getPromptMessage("ask-ai", {
     prompt: "hello",
     sandbox: true,
   });
@@ -93,7 +93,7 @@ test("getPromptMessage includes boolean true args as [key]", () => {
 });
 
 test("getPromptMessage omits false boolean args", () => {
-  const msg = getPromptMessage("ask-gemini", {
+  const msg = getPromptMessage("ask-ai", {
     prompt: "hello",
     sandbox: false,
   });
@@ -106,12 +106,12 @@ test("getPromptMessage throws for unknown tool", () => {
 
 // ── inputSchema structure ─────────────────────────────────────────────────────
 
-test("ask-gemini tool definition has prompt in required fields", () => {
+test("ask-ai tool definition has prompt in required fields", () => {
   const defs = getToolDefinitions();
-  const askGemini = defs.find((d) => d.name === "ask-gemini");
-  assert.ok(askGemini);
-  assert.equal(Array.isArray(askGemini.inputSchema.required) ?
-    askGemini.inputSchema.required.includes("prompt") : false, true);
+  const askAi = defs.find((d) => d.name === "ask-ai");
+  assert.ok(askAi);
+  assert.equal(Array.isArray(askAi.inputSchema.required) ?
+    askAi.inputSchema.required.includes("prompt") : false, true);
 });
 
 test("ping tool definition exists with object inputSchema", () => {

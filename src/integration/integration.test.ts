@@ -1,5 +1,5 @@
 /**
- * Integration tests — run real Gemini API calls.
+ * Integration tests — run real AI API calls.
  *
  * These tests are SKIPPED automatically when GEMINI_API_KEY is not set in the
  * environment. To run them:
@@ -13,8 +13,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { hasGeminiApiKey, callGeminiSdk } from "../utils/aiSdkExecutor.js";
-import { executeGeminiCLI } from "../utils/geminiExecutor.js";
-import { askGeminiTool } from "../tools/ask-gemini.tool.js";
+import { executeModel } from "../utils/executor.js";
+import { askTool } from "../tools/ask.tool.js";
 import { brainstormTool } from "../tools/brainstorm.tool.js";
 import { MODELS } from "../constants.js";
 
@@ -72,54 +72,51 @@ skip("callGeminiSdk inlines @file reference content", async () => {
   }
 });
 
-// ── executeGeminiCLI (SDK backend) ───────────────────────────────────────────
+// ── executeModel (SDK backend) ───────────────────────────────────────────────
 
-skip("executeGeminiCLI returns response via SDK backend", async () => {
-  process.env.GEMINI_BACKEND = "sdk";
+skip("executeModel returns response via SDK backend", async () => {
+  process.env.ANTIGRAVITY_BACKEND = "sdk";
   try {
-    const result = await executeGeminiCLI("Reply with exactly: CLI_SDK_OK", {
+    const result = await executeModel("Reply with exactly: CLI_SDK_OK", {
       model: MODELS.FLASH,
     });
     assert.equal(typeof result, "string");
     assert.ok(result.trim().length > 0);
   } finally {
-    delete process.env.GEMINI_BACKEND;
+    delete process.env.ANTIGRAVITY_BACKEND;
   }
 });
 
-skip("executeGeminiCLI quota fallback switches to Flash model", async () => {
-  // Simulate quota error by deliberately passing an invalid model name
-  // (the SDK will fail, and we verify it doesn't crash with a non-quota error
-  // since we can't easily force a real quota error in tests)
-  process.env.GEMINI_BACKEND = "sdk";
+skip("executeModel quota fallback switches to Flash model", async () => {
+  process.env.ANTIGRAVITY_BACKEND = "sdk";
   try {
-    const result = await executeGeminiCLI("say hi", { model: MODELS.FLASH });
+    const result = await executeModel("say hi", { model: MODELS.FLASH });
     assert.ok(result.trim().length > 0, "Flash model should work");
   } finally {
-    delete process.env.GEMINI_BACKEND;
+    delete process.env.ANTIGRAVITY_BACKEND;
   }
 });
 
-// ── MCP tool: ask-gemini ─────────────────────────────────────────────────────
+// ── MCP tool: ask-ai ─────────────────────────────────────────────────────────
 
-skip("ask-gemini tool executes and returns Gemini response prefix", async () => {
-  process.env.GEMINI_BACKEND = "sdk";
+skip("ask-ai tool executes and returns AI response prefix", async () => {
+  process.env.ANTIGRAVITY_BACKEND = "sdk";
   try {
-    const result = await askGeminiTool.execute({
+    const result = await askTool.execute({
       prompt: "Reply with exactly: TOOL_OK",
       model: MODELS.FLASH,
     });
-    assert.ok(result.includes("Gemini response:"), "Should have response prefix");
+    assert.ok(result.includes("AI response:"), "Should have response prefix");
     assert.ok(result.trim().length > 0, "Should have content");
   } finally {
-    delete process.env.GEMINI_BACKEND;
+    delete process.env.ANTIGRAVITY_BACKEND;
   }
 });
 
-skip("ask-gemini tool with changeMode returns changeMode output structure", async () => {
-  process.env.GEMINI_BACKEND = "sdk";
+skip("ask-ai tool with changeMode returns changeMode output structure", async () => {
+  process.env.ANTIGRAVITY_BACKEND = "sdk";
   try {
-    const result = await askGeminiTool.execute({
+    const result = await askTool.execute({
       prompt:
         "For a file called example.ts with content 'const x = 1;', suggest changing x to y using the OLD/NEW format.",
       model: MODELS.FLASH,
@@ -129,14 +126,14 @@ skip("ask-gemini tool with changeMode returns changeMode output structure", asyn
     assert.equal(typeof result, "string");
     assert.ok(result.trim().length > 0);
   } finally {
-    delete process.env.GEMINI_BACKEND;
+    delete process.env.ANTIGRAVITY_BACKEND;
   }
 });
 
 // ── MCP tool: brainstorm ─────────────────────────────────────────────────────
 
 skip("brainstorm tool returns structured ideas list", async () => {
-  process.env.GEMINI_BACKEND = "sdk";
+  process.env.ANTIGRAVITY_BACKEND = "sdk";
   try {
     const result = await brainstormTool.execute({
       prompt: "mobile app ideas for students",
@@ -148,23 +145,23 @@ skip("brainstorm tool returns structured ideas list", async () => {
     assert.equal(typeof result, "string");
     assert.ok(result.trim().length > 0, "Brainstorm should return non-empty");
   } finally {
-    delete process.env.GEMINI_BACKEND;
+    delete process.env.ANTIGRAVITY_BACKEND;
   }
 });
 
-// ── agy PTY backend (skipped unless GEMINI_BACKEND=agy explicitly set) ───────
+// ── agy PTY backend (skipped unless ANTIGRAVITY_BACKEND=agy explicitly set) ──
 
-const AGY_SKIP = !(!SKIP && process.env.GEMINI_BACKEND === "agy");
+const AGY_SKIP = !(!SKIP && process.env.ANTIGRAVITY_BACKEND === "agy");
 const agySkip = (name: string, fn: () => Promise<void>) => {
   if (AGY_SKIP) {
-    test(`[SKIPPED – set GEMINI_BACKEND=agy to run] ${name}`, () => {});
+    test(`[SKIPPED – set ANTIGRAVITY_BACKEND=agy to run] ${name}`, () => {});
   } else {
     test(name, fn);
   }
 };
 
 agySkip("agy PTY backend returns non-empty response", async () => {
-  const result = await executeGeminiCLI("Reply with exactly: AGY_OK");
+  const result = await executeModel("Reply with exactly: AGY_OK");
   assert.equal(typeof result, "string");
   assert.ok(result.trim().length > 0, "agy should return non-empty response");
 });
