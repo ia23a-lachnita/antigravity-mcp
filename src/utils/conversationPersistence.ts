@@ -6,7 +6,7 @@ import { ConversationMode } from "../constants.js";
 
 export interface ConversationTurn {
   userPrompt: string;
-  geminiResponse: string;
+  aiResponse: string;
   timestamp: string;
 }
 
@@ -34,7 +34,7 @@ export interface ConversationDetails {
   turns: ConversationTurn[];
 }
 
-const DEFAULT_CONVERSATION_DIR = path.join(os.homedir(), ".gemini-mcp-tool", "conversations");
+const DEFAULT_CONVERSATION_DIR = path.join(os.homedir(), ".antigravity-mcp", "conversations");
 const DEFAULT_MAX_CONVERSATION_TURNS = 10;
 const DEFAULT_MAX_CONVERSATION_CHARS = 12000;
 const MAX_CONVERSATION_PREFIX_LENGTH = 32;
@@ -47,20 +47,20 @@ export interface ConversationPrepareOptions {
 }
 
 export interface PreparedConversationContext {
-  promptForGemini: string;
+  promptForModel: string;
   shouldSave: boolean;
   mode: ConversationMode;
   conversationId?: string;
 }
 
 function ensureConversationDir(): string {
-  const dir = process.env.GEMINI_MCP_CONVERSATION_DIR?.trim() || DEFAULT_CONVERSATION_DIR;
+  const dir = process.env.ANTIGRAVITY_MCP_CONVERSATION_DIR?.trim() || DEFAULT_CONVERSATION_DIR;
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
 
 function getConversationDirIfExists(): string | undefined {
-  const dir = process.env.GEMINI_MCP_CONVERSATION_DIR?.trim() || DEFAULT_CONVERSATION_DIR;
+  const dir = process.env.ANTIGRAVITY_MCP_CONVERSATION_DIR?.trim() || DEFAULT_CONVERSATION_DIR;
   return fs.existsSync(dir) ? dir : undefined;
 }
 
@@ -88,7 +88,7 @@ function loadConversation(conversationId: string): ConversationTurn[] {
   return parsed.turns.filter(
     (turn) =>
       typeof turn?.userPrompt === "string" &&
-      typeof turn?.geminiResponse === "string" &&
+      typeof turn?.aiResponse === "string" &&
       typeof turn?.timestamp === "string",
   );
 }
@@ -99,7 +99,7 @@ function saveConversation(conversationId: string, turns: ConversationTurn[]): vo
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
 }
 
-function clearConversation(conversationId: string): void {
+function clearConversationFile(conversationId: string): void {
   const filePath = getConversationFilePath(conversationId);
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
@@ -116,7 +116,7 @@ function readConversationFile(filePath: string): ConversationFile | undefined {
     const validTurns = parsed.turns.filter(
       (turn) =>
         typeof turn?.userPrompt === "string" &&
-        typeof turn?.geminiResponse === "string" &&
+        typeof turn?.aiResponse === "string" &&
         typeof turn?.timestamp === "string",
     );
     return { conversationId: parsed.conversationId, turns: validTurns };
@@ -149,14 +149,14 @@ export function resolveConversationMode(
 }
 
 export function getConversationDirectory(): string {
-  return process.env.GEMINI_MCP_CONVERSATION_DIR?.trim() || DEFAULT_CONVERSATION_DIR;
+  return process.env.ANTIGRAVITY_MCP_CONVERSATION_DIR?.trim() || DEFAULT_CONVERSATION_DIR;
 }
 
 export function getConversationStoragePath(conversationId: string): string {
   return getConversationFilePath(conversationId);
 }
 
-export function listGeminiConversations(): ConversationSummary[] {
+export function listConversations(): ConversationSummary[] {
   const dir = getConversationDirIfExists();
   if (!dir) {
     return [];
@@ -194,7 +194,7 @@ export function listGeminiConversations(): ConversationSummary[] {
   return summaries;
 }
 
-export function readGeminiConversation(
+export function readConversation(
   conversationId: string,
   limitTurns = 5,
 ): ConversationDetails {
@@ -212,18 +212,17 @@ export function readGeminiConversation(
   };
 }
 
-export function clearGeminiConversation(conversationId: string): void {
+export function clearConversation(conversationId: string): void {
   const { data } = requireConversationFile(conversationId);
   saveConversation(data.conversationId, []);
 }
 
-export function deleteGeminiConversation(conversationId: string): void {
+export function deleteConversation(conversationId: string): void {
   const { filePath } = requireConversationFile(conversationId);
   fs.unlinkSync(filePath);
 }
 
 function applyTurnLimit(turns: ConversationTurn[], maxConversationTurns: number): ConversationTurn[] {
-  // Defensive guard: <=0 means "replay nothing".
   if (maxConversationTurns <= 0) {
     return [];
   }
@@ -240,7 +239,7 @@ function applyCharLimit(turns: ConversationTurn[], maxConversationChars: number)
 
   for (let i = turns.length - 1; i >= 0; i--) {
     const turn = turns[i];
-    const turnChars = turn.userPrompt.length + turn.geminiResponse.length;
+    const turnChars = turn.userPrompt.length + turn.aiResponse.length;
     const exceedsLimit = totalChars + turnChars > maxConversationChars;
     // Keep at least the most recent turn so replay context never becomes empty when history exists.
     if (exceedsLimit && kept.length === 0) {
@@ -265,13 +264,13 @@ function buildReplayPrompt(prompt: string, conversationId: string, turns: Conver
   const turnsText = turns
     .map(
       (turn, index) =>
-        `Turn ${index + 1} - User:\n${turn.userPrompt}\n\nTurn ${index + 1} - Gemini:\n${turn.geminiResponse}`,
+        `Turn ${index + 1} - User:\n${turn.userPrompt}\n\nTurn ${index + 1} - AI:\n${turn.aiResponse}`,
     )
     .join("\n\n---\n\n");
 
   return `[MCP MANAGED CONTEXT REPLAY]
 Conversation: ${conversationId}
-Note: This is MCP-managed context replay for one-shot Gemini CLI calls, not native Gemini CLI session persistence.
+Note: This is MCP-managed context replay for one-shot AI calls, not native session persistence.
 
 Prior conversation turns:
 ${turnsText}
@@ -287,7 +286,7 @@ export function prepareConversationContext(
   const mode = resolveConversationMode(options.conversationId, options.conversationMode);
   if (!options.conversationId || mode === "none") {
     return {
-      promptForGemini: prompt,
+      promptForModel: prompt,
       shouldSave: false,
       mode,
       conversationId: options.conversationId,
@@ -295,9 +294,9 @@ export function prepareConversationContext(
   }
 
   if (mode === "reset") {
-    clearConversation(options.conversationId);
+    clearConversationFile(options.conversationId);
     return {
-      promptForGemini: prompt,
+      promptForModel: prompt,
       shouldSave: true,
       mode,
       conversationId: options.conversationId,
@@ -311,7 +310,7 @@ export function prepareConversationContext(
   const boundedTurns = applyCharLimit(turnsByCount, maxChars);
 
   return {
-    promptForGemini: buildReplayPrompt(prompt, options.conversationId, boundedTurns),
+    promptForModel: buildReplayPrompt(prompt, options.conversationId, boundedTurns),
     shouldSave: mode === "append",
     mode,
     conversationId: options.conversationId,
@@ -321,12 +320,12 @@ export function prepareConversationContext(
 export function persistConversationTurn(
   conversationId: string,
   userPrompt: string,
-  geminiResponse: string,
+  aiResponse: string,
 ): void {
   const turns = loadConversation(conversationId);
   turns.push({
     userPrompt,
-    geminiResponse,
+    aiResponse,
     timestamp: new Date().toISOString(),
   });
   saveConversation(conversationId, turns);

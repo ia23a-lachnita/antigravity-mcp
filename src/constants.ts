@@ -1,28 +1,28 @@
 
 
 // Logging
-export const LOG_PREFIX = "[GMCPT]";
+export const LOG_PREFIX = "[AMCP]";
 
 export type ApprovalMode = "default" | "auto_edit" | "plan" | "yolo";
 export type ConversationMode = "none" | "append" | "readonly" | "reset";
 
-// Which backend to use for Gemini model access.
+// Which backend to use for AI model access.
 // "sdk"  – direct @ai-sdk/google API calls (requires GEMINI_API_KEY)
 // "agy"  – agy Antigravity CLI via PTY (requires node-pty + agy installed)
 // "cli"  – legacy gemini CLI (requires gemini CLI in PATH)
 // "auto" – pick sdk if GEMINI_API_KEY set, else agy if agy found, else error
-export type GeminiBackend = "sdk" | "agy" | "cli" | "auto";
+export type AiBackend = "sdk" | "agy" | "cli" | "auto";
 
 // Error messages
 export const ERROR_MESSAGES = {
   QUOTA_EXCEEDED: "Quota exceeded for quota metric",
-  QUOTA_EXCEEDED_SHORT: "⚠️ Gemini Pro daily quota exceeded. Please retry with model: 'gemini-2.5-flash'",
+  QUOTA_EXCEEDED_SHORT: "⚠️ Daily quota exceeded. Please retry with model: 'gemini-2.5-flash'",
   TOOL_NOT_FOUND: "not found in registry",
   NO_PROMPT_PROVIDED: "Please provide a prompt for analysis. Use @ syntax to include files (e.g., '@largefile.js explain what this does') or ask general questions",
-  NO_API_KEY: "No Gemini API key found. Set GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) environment variable. Get a free key at https://aistudio.google.com/apikey",
-  AGY_NOT_FOUND: "agy (Antigravity CLI) not found. Install it from https://antigravity.google or set GEMINI_BACKEND=sdk and provide GEMINI_API_KEY.",
-  PTY_NOT_AVAILABLE: "node-pty is not installed. Run: npm install node-pty  (requires native build tools). Alternatively set GEMINI_BACKEND=sdk and provide GEMINI_API_KEY.",
-  LEGACY_CLI_DISCONTINUED: "The gemini CLI (Google Gemini Code Assist) has been discontinued for the free tier. Migrate to GEMINI_BACKEND=sdk (requires GEMINI_API_KEY) or GEMINI_BACKEND=agy (requires agy installed).",
+  NO_API_KEY: "No API key found. Set GEMINI_API_KEY (or GOOGLE_GENERATIVE_AI_API_KEY) environment variable. Get a free key at https://aistudio.google.com/apikey",
+  AGY_NOT_FOUND: "agy (Antigravity CLI) not found. Install it from https://antigravity.google or set ANTIGRAVITY_BACKEND=sdk and provide GEMINI_API_KEY.",
+  PTY_NOT_AVAILABLE: "node-pty is not installed. Run: npm install node-pty  (requires native build tools). Alternatively set ANTIGRAVITY_BACKEND=sdk and provide GEMINI_API_KEY.",
+  LEGACY_CLI_DISCONTINUED: "The gemini CLI (Google Gemini Code Assist) has been discontinued for the free tier. Migrate to ANTIGRAVITY_BACKEND=sdk (requires GEMINI_API_KEY) or ANTIGRAVITY_BACKEND=agy (requires agy installed).",
 } as const;
 
 // Status messages
@@ -31,11 +31,11 @@ export const STATUS_MESSAGES = {
   FLASH_RETRY: "⚡ Retrying with Gemini 2.5 Flash...",
   FLASH_SUCCESS: "✅ Flash model completed successfully",
   SANDBOX_EXECUTING: "🔒 Executing in sandbox mode...",
-  GEMINI_RESPONSE: "Gemini response:",
+  AI_RESPONSE: "AI response:",
   PROCESSING_START: "🔍 Starting analysis (may take 5-15 minutes for large codebases)",
-  PROCESSING_CONTINUE: "⏳ Still processing... Gemini is working on your request",
+  PROCESSING_CONTINUE: "⏳ Still processing... AI is working on your request",
   PROCESSING_COMPLETE: "✅ Analysis completed successfully",
-  SDK_BACKEND: "🔑 Using direct Gemini API (SDK backend)",
+  SDK_BACKEND: "🔑 Using direct API (SDK backend)",
   AGY_BACKEND: "🔮 Using Antigravity CLI (agy backend)",
   CLI_BACKEND: "🖥️  Using legacy Gemini CLI (cli backend)",
 } as const;
@@ -109,11 +109,11 @@ export const ENV_VARS = {
   GEMINI_API_KEY: "GEMINI_API_KEY",
   GOOGLE_GENERATIVE_AI_API_KEY: "GOOGLE_GENERATIVE_AI_API_KEY",
   GOOGLE_API_KEY: "GOOGLE_API_KEY",
-  GEMINI_BACKEND: "GEMINI_BACKEND",
+  ANTIGRAVITY_BACKEND: "ANTIGRAVITY_BACKEND",
   GEMINI_CLI_PATH: "GEMINI_CLI_PATH",
   AGY_CLI_PATH: "AGY_CLI_PATH",
-  GEMINI_MCP_APPROVAL_MODE: "GEMINI_MCP_APPROVAL_MODE",
-  GEMINI_MCP_CONVERSATION_DIR: "GEMINI_MCP_CONVERSATION_DIR",
+  ANTIGRAVITY_MCP_APPROVAL_MODE: "ANTIGRAVITY_MCP_APPROVAL_MODE",
+  ANTIGRAVITY_MCP_CONVERSATION_DIR: "ANTIGRAVITY_MCP_CONVERSATION_DIR",
 } as const;
 
 // (merged PromptArguments and ToolArguments)

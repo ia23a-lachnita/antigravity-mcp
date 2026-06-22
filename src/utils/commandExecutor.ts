@@ -174,19 +174,19 @@ export function buildEnoentErrorMessage(command: string): string {
       `       macOS/Linux: which agy\n` +
       `  3. Set the AGY_CLI_PATH environment variable to the full path, for example:\n` +
       `       AGY_CLI_PATH=C:\\Users\\<user>\\AppData\\Local\\agy\\bin\\agy.exe\n` +
-      `  4. Alternatively, use GEMINI_BACKEND=sdk with GEMINI_API_KEY for direct API access.`
+      `  4. Alternatively, use ANTIGRAVITY_BACKEND=sdk with GEMINI_API_KEY for direct API access.`
     );
   }
   return (
     `Gemini CLI not found: '${command}' could not be launched.\n` +
     `NOTE: The legacy gemini CLI (Google Gemini Code Assist) has been discontinued for free-tier users.\n` +
     `Migration options:\n` +
-    `  1. Set GEMINI_BACKEND=sdk and GEMINI_API_KEY=<your-key> (get a free key at https://aistudio.google.com/apikey)\n` +
-    `  2. Set GEMINI_BACKEND=agy to use the agy Antigravity CLI (install from https://antigravity.google)\n` +
+    `  1. Set ANTIGRAVITY_BACKEND=sdk and GEMINI_API_KEY=<your-key> (get a free key at https://aistudio.google.com/apikey)\n` +
+    `  2. Set ANTIGRAVITY_BACKEND=agy to use the agy Antigravity CLI (install from https://antigravity.google)\n` +
     `If you still want to use the CLI, find its path:\n` +
     `     Windows: where gemini\n` +
     `     macOS/Linux: which gemini\n` +
-    `Then set: GEMINI_CLI_PATH=<full-path-to-gemini>`
+    `Then set: GEMINI_CLI_PATH=<full-path-to-gemini-cli>`
   );
 }
 
@@ -245,7 +245,7 @@ export async function executeCommand(
         const errorJson = {
           error: {
             code: parseInt(status),
-            message: `GMCPT: --> Quota exceeded for ${model}`,
+            message: `AMCP: --> Quota exceeded for ${model}`,
             details: {
               model: model,
               reason: reason,

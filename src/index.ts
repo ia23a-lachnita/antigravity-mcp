@@ -92,11 +92,11 @@ function startProgressUpdates(
   latestOutput = ""; // Reset latest output
   
   const progressMessages = [
-    `🧠 ${operationName} - Gemini is analyzing your request...`,
+    `🧠 ${operationName} - AI is analyzing your request...`,
     `📊 ${operationName} - Processing files and generating insights...`,
     `✨ ${operationName} - Creating structured response for your review...`,
     `⏱️ ${operationName} - Large analysis in progress (this is normal for big requests)...`,
-    `🔍 ${operationName} - Still working... Gemini takes time for quality results...`,
+    `🔍 ${operationName} - Still working... AI takes time for quality results...`,
   ];
   
   let messageIndex = 0;
@@ -252,7 +252,7 @@ server.setRequestHandler(GetPromptRequestSchema, async (request: GetPromptReques
 
 // Start the server
 async function main() {
-  Logger.debug("init gemini-mcp-tool");
+  Logger.debug("init antigravity-mcp");
   const transport = new StdioServerTransport(); await server.connect(transport);
-  Logger.debug("gemini-mcp-tool listening on stdio");
+  Logger.debug("antigravity-mcp listening on stdio");
 } main().catch((error) => {Logger.error("Fatal error:", error); process.exit(1); }); 
