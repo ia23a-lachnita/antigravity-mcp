@@ -21,6 +21,7 @@ const askArgsSchema = z.object({
   maxConversationChars: z.number().int().min(1).optional().describe("Maximum combined characters of replayed conversation turns."),
   chunkIndex: z.union([z.number(), z.string()]).optional().describe("Which chunk to return (1-based)"),
   chunkCacheKey: z.string().optional().describe("Optional cache key for continuation"),
+  workDir: z.string().optional().describe("Working directory for agy to resolve @file references. Defaults to ANTIGRAVITY_MCP_WORK_DIR env var or server cwd."),
 });
 
 export const askTool: UnifiedTool = {
@@ -43,7 +44,8 @@ export const askTool: UnifiedTool = {
       maxConversationTurns,
       maxConversationChars,
       chunkIndex,
-      chunkCacheKey
+      chunkCacheKey,
+      workDir,
     } = args;
     if (!prompt?.trim()) { throw new Error(ERROR_MESSAGES.NO_PROMPT_PROVIDED); }
 
@@ -70,7 +72,8 @@ export const askTool: UnifiedTool = {
         sandbox: !!sandbox,
         changeMode: !!changeMode,
         approvalMode: approvalMode as ApprovalMode | undefined,
-        onProgress
+        onProgress,
+        workDir: workDir as string | undefined,
       }
     );
 

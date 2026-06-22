@@ -23,6 +23,7 @@ export interface AiExecutionOptions {
   changeMode?: boolean;
   approvalMode?: ApprovalMode;
   onProgress?: (newOutput: string) => void;
+  workDir?: string;
 }
 
 // ──────────────────────────────────────────────
@@ -96,7 +97,7 @@ export async function executeModel(
   prompt: string,
   options: AiExecutionOptions = {},
 ): Promise<string> {
-  const { model, sandbox, changeMode, onProgress, approvalMode } = options;
+  const { model, sandbox, changeMode, onProgress, approvalMode, workDir } = options;
   let processedPrompt = prompt;
 
   // changeMode: rewrite @file: refs and prepend formatting instructions
@@ -181,6 +182,7 @@ ${processedPrompt}
         sandbox: !!sandbox,
         approvalMode: resolvedApprovalMode,
         onProgress,
+        workDir,
       });
 
     case 'cli':
@@ -211,9 +213,10 @@ async function executeAgyBackend(
     sandbox?: boolean;
     approvalMode?: ApprovalMode;
     onProgress?: (s: string) => void;
+    workDir?: string;
   },
 ): Promise<string> {
-  Logger.debug(`agy backend: model=${options.model ?? 'default'}`);
+  Logger.debug(`agy backend: model=${options.model ?? 'default'}, workDir=${options.workDir ?? 'default'}`);
   return executeAgyViaPty(prompt, options);
 }
 

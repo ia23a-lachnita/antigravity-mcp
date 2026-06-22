@@ -132,6 +132,17 @@ export function buildAgyArgs(
   return args;
 }
 
+// Strip agy/Claude Code tool-call narration lines ("I will list...", "I will read...").
+// These are emitted by Claude before each tool call in --print mode and add no value to the response.
+export function stripAgyNarration(text: string): string {
+  return text
+    .split('\n')
+    .filter(line => !/^I will .+\.$/.test(line.trim()))
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 export interface AgyPtyExecutionOptions {
   model?: string;
   sandbox?: boolean;
@@ -141,6 +152,8 @@ export interface AgyPtyExecutionOptions {
   /** PTY column width (wider = fewer line-wrap artifacts). Default: 220 */
   cols?: number;
   rows?: number;
+  /** Working directory for agy. Defaults to ANTIGRAVITY_MCP_WORK_DIR env var or process.cwd(). */
+  workDir?: string;
 }
 
 export async function executeAgyViaPty(
@@ -160,11 +173,16 @@ export async function executeAgyViaPty(
   Logger.debug(`agy PTY: ${agyPath} ${args.join(' ')}`);
 
   return new Promise<string>((resolve, reject) => {
+    const spawnCwd =
+      options.workDir ??
+      process.env['ANTIGRAVITY_MCP_WORK_DIR'] ??
+      process.cwd();
+
     const ptyProc = pty.spawn(agyPath, args, {
       name: 'xterm-color',
       cols: options.cols ?? 220,
       rows: options.rows ?? 50,
-      cwd: process.cwd(),
+      cwd: spawnCwd,
       env: { ...process.env } as Record<string, string>,
     });
 
@@ -183,7 +201,7 @@ export async function executeAgyViaPty(
     });
 
     ptyProc.onExit(({ exitCode }: { exitCode: number }) => {
-      const clean = stripAnsi(rawOutput).trim();
+      const clean = stripAgyNarration(stripAnsi(rawOutput).trim());
 
       // Detect quota/usage-limit messages in output regardless of exit code
       const isQuotaError =
